@@ -1,4 +1,4 @@
-name: Aggiorna messaggi
+name: Aggiorna messaggi 
 
 on:
   workflow_dispatch:  # Questo trigger ti permette di avviare l'azione manualmente dal sito
