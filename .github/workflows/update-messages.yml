@@ -16,13 +16,13 @@ jobs:
       - name: Update messages.json file
         run: |
           # Preleva il file messages.json dal repository
-          curl -X GET -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          curl -X GET -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
             https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json > messages.json
 
           # Aggiungi il nuovo messaggio al file JSON (modifica con il tuo messaggio)
           echo '{"text": "Nuovo messaggio"}' >> messages.json
 
           # Carica il file modificato su GitHub
-          curl -X PUT -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          curl -X PUT -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
             -d @messages.json \
             https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json
