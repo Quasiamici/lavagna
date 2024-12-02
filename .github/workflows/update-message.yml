@@ -19,7 +19,6 @@ jobs:
 
       - name: Update messages file
         run: |
-          echo "Fetching and adding new message to messages.json"
           NEW_MESSAGE=$(echo '${{ github.event.client_payload.message }}')
           jq ". += [{\"text\": \"$NEW_MESSAGE\"}]" messages.json > messages_updated.json
           mv messages_updated.json messages.json
