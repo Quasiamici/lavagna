@@ -1,0 +1,24 @@
+name: Aggiorna messaggi
+
+on:
+  workflow_dispatch:  # Questo trigger ti permette di avviare l'azione manualmente dal sito
+
+jobs:
+  update_messages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v2
+
+      - name: Aggiungi il messaggio
+        run: |
+          echo "Aggiungi il messaggio ricevuto dal frontend" >> messages.json
+      
+      - name: Commit e push dei cambiamenti
+        run: |
+          git config --global user.email "fabiodeluca86@gmail.com"
+          git config --global user.name "Quasiamici"
+          git add messages.json
+          git commit -m "Aggiunto nuovo messaggio"
+          git push
