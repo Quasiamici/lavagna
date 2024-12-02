@@ -1,31 +1,33 @@
-name: Write Message to GitHub
+name: Update Messages
 
 on:
-  workflow_dispatch:
-    inputs:
-      message:
-        description: 'Message to be added'
-        required: true
-        type: string
+  repository_dispatch:
+    types: [add_message]
 
 jobs:
-  write_message:
+  update-file:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v2
-        
-      - name: Set up Git
-        run: git config --global user.name 'github-actions' && git config --global user.email 'github-actions@github.com'
 
-      - name: Add message to file
+      - name: Get the current messages
+        id: get_messages
         run: |
-          echo "${{ github.event.inputs.message }}" >> messages.json  # Aggiungi il messaggio al file
+          curl -O https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json
+
+      - name: Update messages file
+        run: |
+          echo "Fetching and adding new message to messages.json"
+          NEW_MESSAGE=$(echo '${{ github.event.client_payload.message }}')
+          jq ". += [{\"text\": \"$NEW_MESSAGE\"}]" messages.json > messages_updated.json
+          mv messages_updated.json messages.json
+
+      - name: Commit changes
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
           git add messages.json
-          git commit -m "Add new message"
+          git commit -m "Update messages.json with new message"
           git push
-
-      - name: Push changes
-        run: |
-          git push origin main  # Pusha i cambiamenti nel branch principale
