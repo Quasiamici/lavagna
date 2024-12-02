@@ -3,7 +3,7 @@ const messagesDiv = document.getElementById('messages');
 
 // Carica i messaggi all'avvio
 async function loadMessages() {
-  const response = await fetch('http://localhost:3000/api/messages');
+  const response = await fetch('https://raw.githubusercontent.com/Quasiamici/lavagna/backend/messages.json');
   const messages = await response.json();
   messagesDiv.innerHTML = ''; // Pulisce i messaggi esistenti
   messages.forEach(msg => {
