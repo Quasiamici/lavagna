@@ -3,7 +3,7 @@ const messagesDiv = document.getElementById('messages');
 const messageInput = document.getElementById('messageInput');
 
 const GITHUB_API_URL = 'https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json';
-const GITHUB_TOKEN = 'YOUR_GITHUB_PERSONAL_ACCESS_TOKEN'; // Usa il token generato
+const GITHUB_TOKEN = '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'; // Usa il token generato
 
 // Carica i messaggi dal file messages.json su GitHub
 async function loadMessages() {
