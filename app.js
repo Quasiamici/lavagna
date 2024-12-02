@@ -2,78 +2,57 @@ const form = document.getElementById('messageForm');
 const messagesDiv = document.getElementById('messages');
 const messageInput = document.getElementById('messageInput');
 
-// Sostituisci con il tuo nome utente e repository
-const GITHUB_API_URL = 'https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json';
+// Usa il tuo GitHub repository URL e token
+const GITHUB_API_URL = 'https://api.github.com/repos/Quasiamici/lavagna/actions/workflows/update-message.yml/dispatches';
 
-// Funzione per caricare i messaggi da GitHub
 async function loadMessages() {
   try {
-    const response = await fetch(GITHUB_API_URL);
-    if (!response.ok) {
-      console.error('Errore nel caricamento dei messaggi:', response.status, await response.text());
-      return;
-    }
-
+    const response = await fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json');
     const data = await response.json();
-    const content = atob(data.content); // Decodifica in base64
+    const content = atob(data.content);
     const messages = JSON.parse(content);
 
-    messagesDiv.innerHTML = ''; // Pulisce i messaggi esistenti
+    messagesDiv.innerHTML = '';
     messages.forEach(msg => {
       const p = document.createElement('p');
       p.textContent = msg.text;
       messagesDiv.appendChild(p);
     });
   } catch (error) {
-    console.error('Errore durante il caricamento dei messaggi:', error);
+    console.error('Errore durante la richiesta API:', error);
   }
 }
 
-// Invia un messaggio al file messages.json su GitHub
+// Invio del messaggio tramite GitHub Action
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const message = messageInput.value.trim();
   if (message) {
+    const newMessage = { text: message };
+
+    // Chiamata al workflow GitHub Action per aggiornare il file JSON
     try {
-      const response = await fetch(GITHUB_API_URL);
-      if (!response.ok) {
-        console.error('Errore nel caricamento dei messaggi:', response.status, await response.text());
-        return;
-      }
-
-      const data = await response.json();
-      const content = atob(data.content); // Decodifica in base64
-      const messages = JSON.parse(content);
-
-      // Aggiungi il nuovo messaggio
-      messages.push({ text: message });
-
-      // Salva il nuovo messaggio nel file su GitHub
-      const newContent = JSON.stringify(messages, null, 2);
-      const encodedContent = btoa(newContent); // Codifica in base64
-
-      const updateResponse = await fetch(GITHUB_API_URL, {
-        method: 'PUT',
+      const response = await fetch(GITHUB_API_URL, {
+        method: 'POST',
         headers: {
-          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+          'Authorization': `token YOUR_GITHUB_TOKEN`,  // Usa un token sicuro
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: 'Aggiungi un nuovo messaggio',
-          content: encodedContent,
-          sha: data.sha, // SHA del file per aggiornamento
+          ref: 'main',  // La branch a cui inviare la modifica
+          inputs: { message: newMessage }
         }),
       });
 
-      if (updateResponse.ok) {
-        messageInput.value = ''; // Svuota il campo di input
-        loadMessages(); // Ricarica i messaggi
+      if (response.ok) {
+        loadMessages();
+        messageInput.value = '';
       } else {
-        console.error('Errore nel salvataggio del messaggio:', updateResponse.status, await updateResponse.text());
+        console.error('Errore nell\'invio del messaggio:', response.status, await response.text());
       }
     } catch (error) {
-      console.error('Errore durante l\'invio del messaggio:', error);
+      console.error('Errore nell\'invio del messaggio:', error);
     }
   }
 });
