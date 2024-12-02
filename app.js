@@ -2,19 +2,31 @@ const form = document.getElementById('messageForm');
 const messagesDiv = document.getElementById('messages');
 const messageInput = document.getElementById('messageInput');
 
-// URL per il webhook che attiva GitHub Actions
-const GITHUB_ACTION_URL = 'https://api.github.com/repos/Quasiamici/lavagna/dispatches'; // Cambia con il tuo repository
+// Sostituisci con il tuo nome utente e il nome del repository
+const GITHUB_API_URL = 'https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json';
+
+// Usa il token generato come variabile di ambiente (se lo usi nel server o GitHub Actions)
+const GITHUB_TOKEN = process.env.TOKEN_GITHUB; // Token definito come variabile ambiente
 
 // Carica i messaggi dal file messages.json su GitHub
 async function loadMessages() {
   try {
-    const response = await fetch('https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json');
+    const response = await fetch(GITHUB_API_URL, {
+      method: 'GET',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+      }
+    });
+
     if (!response.ok) {
-      console.error('Errore nel caricamento dei messaggi:', response.status);
+      console.error('Errore nel caricamento dei messaggi:', response.status, await response.text());
       return;
     }
 
-    const messages = await response.json();
+    const data = await response.json();
+    const content = atob(data.content); // Decodifica il contenuto Base64
+    const messages = JSON.parse(content);
+
     messagesDiv.innerHTML = ''; // Pulisce i messaggi esistenti
     messages.forEach(msg => {
       const p = document.createElement('p');
@@ -26,33 +38,56 @@ async function loadMessages() {
   }
 }
 
-// Invia un messaggio al file messages.json tramite GitHub Actions
+// Invia un messaggio al file messages.json su GitHub
 form.addEventListener('submit', async (e) => {
   e.preventDefault();
 
   const message = messageInput.value.trim();
   if (message) {
     try {
-      // Invio dei dati a GitHub Actions tramite il webhook
-      const response = await fetch(GITHUB_ACTION_URL, {
-        method: 'POST',
+      // Carica i messaggi esistenti
+      const response = await fetch(GITHUB_API_URL, {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer YOUR_GITHUB_PERSONAL_ACCESS_TOKEN`, // Usa il tuo token segreto
-          'Content-Type': 'application/json',
+          'Authorization': `token ${GITHUB_TOKEN}`,
         },
-        body: JSON.stringify({
-          event_type: 'add_message',
-          client_payload: { message: message },
-        }),
       });
 
       if (!response.ok) {
-        console.error('Errore nell\'invio del messaggio:', response.status, await response.text());
+        console.error('Errore nel caricamento dei messaggi:', response.status, await response.text());
         return;
       }
 
-      messageInput.value = '';  // Svuota il campo di input
-      loadMessages();  // Ricarica i messaggi
+      const data = await response.json();
+      const content = atob(data.content); // Decodifica il contenuto Base64
+      const messages = JSON.parse(content);
+
+      // Aggiungi il nuovo messaggio
+      messages.push({ text: message });
+
+      // Salva i nuovi messaggi nel file su GitHub
+      const newContent = JSON.stringify(messages, null, 2);
+      const encodedContent = btoa(newContent); // Codifica in Base64
+
+      const updateResponse = await fetch(GITHUB_API_URL, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${GITHUB_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: 'Aggiungi un nuovo messaggio',
+          content: encodedContent,
+          sha: data.sha, // La versione del file precedente per l'operazione di aggiornamento
+        }),
+      });
+
+      if (updateResponse.ok) {
+        messageInput.value = '';  // Svuota il campo di input
+        loadMessages();  // Ricarica i messaggi
+      } else {
+        console.error('Errore nel salvataggio del messaggio:', updateResponse.status, await updateResponse.text());
+      }
     } catch (error) {
       console.error('Errore nel salvataggio del messaggio:', error);
     }
