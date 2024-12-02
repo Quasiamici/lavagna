@@ -1,0 +1,76 @@
+/* Corpo della pagina */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;  /* Aggiungi altezza minima per il corpo */
+  justify-content: center;  /* Centra verticalmente */
+}
+
+/* Contenitore principale */
+#app {
+  max-width: 600px;
+  width: 100%;
+  margin: 20px;
+  padding: 20px;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Titolo */
+h1 {
+  text-align: center;
+  font-size: 2em;
+  margin-bottom: 20px;
+}
+
+/* Contenitore dei messaggi */
+#messages {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stile per ogni messaggio, che ora è un paragrafo */
+.message {
+  margin-bottom: 15px; /* Distanza tra i messaggi */
+  padding: 10px;
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  line-height: 1.6; /* Aggiungi un po' di spazio tra le righe del messaggio */
+}
+
+/* Form di invio messaggi */
+textarea {
+  width: 100%;
+  height: 100px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
