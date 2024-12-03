@@ -1,32 +1,92 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lavagna</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        #message-list { list-style-type: none; padding: 0; }
+        li { padding: 8px; background-color: #f0f0f0; margin-bottom: 4px; }
+        #input-form { margin-bottom: 20px; }
+        input, button { padding: 8px; margin-right: 10px; }
+    </style>
 </head>
 <body>
     <h1>Lavagna</h1>
-    <div id="messages"></div>
-    
-    <script>
-        const REPO_OWNER = "Quasiamici";
-        const REPO_NAME = "lavagna";
 
-        // Funzione per caricare i messaggi
-        async function loadMessages() {
-            try {
-                const response = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/messages.json`);
-                const data = await response.json();
-                const messagesElement = document.getElementById("messages");
-                messagesElement.innerHTML = data.map(msg => `<p>${msg}</p>`).join("");
-            } catch (error) {
-                console.error("Errore nel caricamento dei messaggi:", error);
-                document.getElementById("messages").innerHTML = "Impossibile caricare i messaggi.";
-            }
+    <!-- Form per inserire un nuovo messaggio -->
+    <div id="input-form">
+        <input type="text" id="new-message" placeholder="Scrivi un messaggio" />
+        <button onclick="addMessage()">Aggiungi</button>
+    </div>
+
+    <ul id="message-list"></ul>
+
+    <script>
+        // Funzione per caricare i messaggi esistenti
+        function loadMessages() {
+            fetch('https://quasiamici.github.io/lavagna/messages.json')
+                .then(response => response.json())
+                .then(data => {
+                    let messageList = document.getElementById('message-list');
+                    messageList.innerHTML = ''; // Pulisce la lista esistente
+
+                    data.forEach(message => {
+                        let messageItem = document.createElement('li');
+                        messageItem.textContent = message.message;  // Mostra solo il contenuto del campo "message"
+                        messageList.appendChild(messageItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Errore nel caricamento dei messaggi:', error);
+                });
         }
 
-        loadMessages();  // Carica i messaggi all'avvio
+        // Funzione per aggiungere un nuovo messaggio
+        function addMessage() {
+            const newMessage = document.getElementById('new-message').value;
+
+            if (newMessage.trim() === '') {
+                alert('Il messaggio non può essere vuoto!');
+                return;
+            }
+
+            // Recupera i messaggi correnti dal file JSON (se esistono)
+            fetch('https://quasiamici.github.io/lavagna/messages.json')
+                .then(response => response.json())
+                .then(data => {
+                    // Aggiungi il nuovo messaggio all'array
+                    data.push({ message: newMessage });
+
+                    // Aggiorna la visualizzazione dei messaggi
+                    displayMessages(data);
+
+                    // Qui dovresti inviare i dati al backend per salvarli, ma in un contesto GitHub Pages questo non è possibile
+                    // Salva il nuovo array dei messaggi nel file (simulazione)
+                    // Purtroppo, non possiamo inviare il file direttamente su GitHub senza un backend, ma possiamo mostrarlo in tempo reale
+
+                    document.getElementById('new-message').value = '';  // Resetta l'input
+                })
+                .catch(error => {
+                    console.error('Errore nel recupero dei messaggi:', error);
+                });
+        }
+
+        // Funzione per visualizzare i messaggi sulla lavagna
+        function displayMessages(messages) {
+            let messageList = document.getElementById('message-list');
+            messageList.innerHTML = ''; // Pulisce la lista esistente
+
+            messages.forEach(message => {
+                let messageItem = document.createElement('li');
+                messageItem.textContent = message.message;
+                messageList.appendChild(messageItem);
+            });
+        }
+
+        // Carica i messaggi quando la pagina viene caricata
+        window.onload = loadMessages;
     </script>
 </body>
 </html>
