@@ -3,21 +3,26 @@ name: Aggiungi Messaggio
 on:
   push:
     branches:
-      - main
+      - main  # O il ramo che usi
 
 jobs:
   update-messages:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout del codice
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.TOKEN_GITHUB }}   # Usa il tuo token di accesso personalizzato
 
+      # Configurazione di Git
       - name: Set up Git
         run: |
           git config user.name "GitHub Actions"
           git config user.email "action@github.com"
 
+      # Aggiungi un nuovo messaggio
       - name: Ottieni il contenuto attuale del file messages.json
         run: |
           curl -o messages.json https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json
@@ -26,6 +31,7 @@ jobs:
         run: |
           echo '{"message": "Nuovo messaggio!"}' >> messages.json
 
+      # Commit e push delle modifiche
       - name: Commit e push delle modifiche
         run: |
           git add messages.json
