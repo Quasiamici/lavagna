@@ -3,95 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lavagna Messaggi</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 0;
-        }
-        #messages {
-            border: 1px solid #ccc;
-            padding: 10px;
-            height: 300px;
-            overflow-y: scroll;
-            margin-bottom: 10px;
-        }
-        textarea {
-            width: 100%;
-            height: 50px;
-            margin-bottom: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-    </style>
+    <title>Lavagna</title>
 </head>
 <body>
-    <h1>Lavagna Messaggi</h1>
-    <div id="messages">Caricamento messaggi...</div>
-    <textarea id="newMessage" placeholder="Scrivi il tuo messaggio qui"></textarea>
-    <button onclick="postMessage()">Invia Messaggio</button>
+    <h1>Lavagna</h1>
+    <div id="messages"></div>
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="Scrivi un messaggio" required />
+        <button type="submit">Invia</button>
+    </form>
 
     <script>
-        const apiUrl = "https://api.github.com/Quasiamici/lavagna/contents/messages.json";
+        const REPO_OWNER = "Quasiamici";
+        const REPO_NAME = "lavagna";
 
-        // Funzione per caricare i messaggi
-    async function loadMessages() {
-    const apiUrl = "https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json";
-
-    try {
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-            throw new Error(`Errore ${response.status}: Impossibile caricare i messaggi.`);
-        }
-
-        const data = await response.json();
-        const content = atob(data.content || "W10="); // Decodifica o usa un array vuoto
-        const messages = JSON.parse(content);
-
-        // Mostra i messaggi
-        document.getElementById("messages").innerHTML = messages
-            .map(msg => `<p>${msg}</p>`)
-            .join("");
-    } catch (error) {
-        console.error("Errore nel caricamento:", error);
-        document.getElementById("messages").innerHTML = "Impossibile caricare i messaggi.";
-    }
-}
-
-
-        // Funzione per inviare un nuovo messaggio
-        async function postMessage() {
-            const newMessage = document.getElementById("newMessage").value;
-            if (!newMessage.trim()) return alert("Il messaggio non può essere vuoto!");
-
+        // Carica i messaggi dalla lavagna
+        async function loadMessages() {
             try {
-                const response = await fetch("/add-message", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ message: newMessage }),
-                });
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/messages.json`);
 
-                if (response.ok) {
-                    document.getElementById("newMessage").value = "";
-                    loadMessages(); // Ricarica i messaggi
-                } else {
-                    alert("Errore durante l'invio del messaggio.");
+                if (!response.ok) {
+                    throw new Error(`Errore ${response.status}: Impossibile caricare i messaggi.`);
                 }
+
+                const data = await response.json();
+                const content = atob(data.content); // Decodifica il contenuto Base64
+                const messages = JSON.parse(content);
+
+                // Mostra i messaggi nella pagina
+                const messagesElement = document.getElementById("messages");
+                messagesElement.innerHTML = messages
+                    .map(msg => `<p>${msg}</p>`)
+                    .join("");
             } catch (error) {
-                console.error("Errore durante l'invio:", error);
+                console.error("Errore nel caricamento dei messaggi:", error);
+                document.getElementById("messages").innerHTML = "Impossibile caricare i messaggi.";
             }
         }
 
-        loadMessages(); // Carica i messaggi all'avvio
+        // Invia un nuovo messaggio alla lavagna
+        async function addMessage(event) {
+            event.preventDefault();
+
+            const messageInput = document.getElementById("message-input");
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            try {
+                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/vnd.github.v3+json",
+                        "Authorization": `Bearer GITHUB_PAT_SECRET` // Non necessario se non è richiesto nel frontend
+                    },
+                    body: JSON.stringify({
+                        event_type: "add-message",
+                        client_payload: { message }
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Errore ${response.status}: Impossibile inviare il messaggio.`);
+                }
+
+                alert("Messaggio inviato con successo!");
+                messageInput.value = "";
+                loadMessages();
+            } catch (error) {
+                console.error("Errore durante l'invio del messaggio:", error);
+                alert("Errore durante l'invio del messaggio.");
+            }
+        }
+
+        document.getElementById("message-form").addEventListener("submit", addMessage);
+
+        // Carica i messaggi all'avvio
+        loadMessages();
     </script>
 </body>
 </html>
