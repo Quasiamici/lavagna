@@ -1,4 +1,4 @@
-name: Aggiorna Messaggi
+name: Aggiungi Messaggio
 
 on:
   repository_dispatch:
@@ -16,18 +16,24 @@ jobs:
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/Quasiamici/lavagna.git
 
-      - name: Scarica messaggi
+      - name: Aggiungi nuovo messaggio
+        env:
+          TOKEN: ${{ secrets.TOKEN_GITHUB }}
         run: |
-          curl -H "Authorization: Bearer ${{ secrets.TOKEN_GITHUB }}" \
+          # Ottieni il contenuto corrente
+          curl -H "Authorization: Bearer $TOKEN" \
                -H "Accept: application/vnd.github.v3.raw" \
                -o messages.json \
                https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json
 
-      - name: Aggiungi nuovo messaggio
-        run: |
-          echo '${{ github.event.client_payload.message }}' >> messages.json
-          git add messages.json
-          git commit -m "Aggiorna messaggi"
-          git push
+          # Aggiungi il nuovo messaggio
+          echo "Aggiungi messaggio: ${{ github.event.client_payload.message }}"
+          echo $(jq ". + [\"${{ github.event.client_payload.message }}\"]" messages.json) > messages.json
+
+          # Aggiorna il file su GitHub
+          curl -X PUT \
+               -H "Authorization: Bearer $TOKEN" \
+               -H "Accept: application/vnd.github.v3+json" \
+               -d "{\"message\": \"Aggiunto nuovo messaggio\", \"content\": \"$(cat messages.json | base64 -w 0)\", \"sha\": \"$(curl -s -H \"Authorization: Bearer $TOKEN\" https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json | jq -r '.sha')\"}" \
+               https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json
