@@ -1,53 +1,48 @@
-name: Aggiungi Messaggio
+name: Update Messages JSON
 
 on:
   push:
-    branches:
-      - main  # O il ramo che usi
+    paths:
+      - 'messages.json'
 
 jobs:
-  update-messages:
+  update_messages:
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout del codice
       - name: Checkout repository
         uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          token: ${{ secrets.TOKEN_GITHUB }}   # Usa il tuo token di accesso personalizzato
+          python-version: '3.x'
 
-      # Configurazione di Git
-      - name: Set up Git
+      - name: Update messages.json
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "action@github.com"
+          import json
+          from datetime import datetime
 
-      # Ottieni il contenuto corrente di messages.json
-      - name: Visualizza messaggi correnti
+          # Carica il file JSON
+          with open('messages.json', 'r') as f:
+              messages = json.load(f)
+
+          # Aggiungi il nuovo messaggio
+          new_message = {
+              "message": "Nuovo messaggio aggiunto!",
+              "date": datetime.now().isoformat()
+          }
+          messages.append(new_message)
+
+          # Scrivi il file aggiornato
+          with open('messages.json', 'w') as f:
+              json.dump(messages, f, indent=2)
+
+      - name: Commit updated messages
         run: |
-          curl -o messages.json https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json
-          cat messages.json  # Visualizza il contenuto corrente
-
-      # Aggiungi un nuovo messaggio usando jq per formattare correttamente il JSON
-      - name: Aggiungi un nuovo messaggio
-        run: |
-          # Se il file è vuoto, creiamo un array vuoto prima di aggiungere il messaggio
-          if [ ! -s messages.json ]; then
-            echo "[]" > messages.json
-          fi
-          
-          # Aggiungi il nuovo messaggio all'array
-          jq '. += [{"message": "Nuovo messaggio!"}]' messages.json > temp.json && mv temp.json messages.json
-          
-          # Rimuovi qualsiasi carattere invisibile (BOM, spazi extra)
-          sed -i '1s/^\xEF\xBB\xBF//' messages.json
-
-          # Visualizza il contenuto del file dopo la modifica
-          cat messages.json
-
-      # Commit e push delle modifiche
-      - name: Commit e push delle modifiche
-        run: |
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
           git add messages.json
           git commit -m "Aggiunto un nuovo messaggio"
-          git push https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/Quasiamici/lavagna.git
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
