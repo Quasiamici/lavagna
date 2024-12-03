@@ -34,7 +34,7 @@
 
                     data.forEach(message => {
                         let messageItem = document.createElement('li');
-                        messageItem.textContent = message.message;  // Mostra solo il contenuto del campo "message"
+                        messageItem.textContent = message.message;
                         messageList.appendChild(messageItem);
                     });
                 })
@@ -52,37 +52,22 @@
                 return;
             }
 
-            // Recupera i messaggi correnti dal file JSON (se esistono)
-            fetch('https://quasiamici.github.io/lavagna/messages.json')
-                .then(response => response.json())
-                .then(data => {
-                    // Aggiungi il nuovo messaggio all'array
-                    data.push({ message: newMessage });
+            // Aggiungi il nuovo messaggio al file JSON nel repository
+            const currentDate = new Date();
+            const newEntry = {
+                message: newMessage,
+                date: currentDate.toISOString()
+            };
 
-                    // Aggiorna la visualizzazione dei messaggi
-                    displayMessages(data);
+            // Simuliamo il push del messaggio su GitHub
+            // In un ambiente reale, il file JSON verrebbe aggiornato direttamente nel repo tramite GitHub Actions
+            console.log('Messaggio da aggiungere:', newEntry);
 
-                    // Qui dovresti inviare i dati al backend per salvarli, ma in un contesto GitHub Pages questo non è possibile
-                    // Salva il nuovo array dei messaggi nel file (simulazione)
-                    // Purtroppo, non possiamo inviare il file direttamente su GitHub senza un backend, ma possiamo mostrarlo in tempo reale
+            // Resetta l'input
+            document.getElementById('new-message').value = '';
 
-                    document.getElementById('new-message').value = '';  // Resetta l'input
-                })
-                .catch(error => {
-                    console.error('Errore nel recupero dei messaggi:', error);
-                });
-        }
-
-        // Funzione per visualizzare i messaggi sulla lavagna
-        function displayMessages(messages) {
-            let messageList = document.getElementById('message-list');
-            messageList.innerHTML = ''; // Pulisce la lista esistente
-
-            messages.forEach(message => {
-                let messageItem = document.createElement('li');
-                messageItem.textContent = message.message;
-                messageList.appendChild(messageItem);
-            });
+            // Ricarica i messaggi
+            loadMessages();
         }
 
         // Carica i messaggi quando la pagina viene caricata
