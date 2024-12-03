@@ -1,113 +1,80 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lavagna</title>
-    <style>
-        body { font-family: Arial, sans-serif; }
-        #message-list { list-style-type: none; padding: 0; }
-        li { padding: 8px; background-color: #f0f0f0; margin-bottom: 4px; }
-        #input-form { margin-bottom: 20px; }
-        input, button { padding: 8px; margin-right: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lavagna - Quasiamici</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f9;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .message {
+      border-bottom: 1px solid #ddd;
+      padding: 10px 0;
+    }
+    .message:last-child {
+      border-bottom: none;
+    }
+  </style>
 </head>
 <body>
-    <h1>Lavagna</h1>
-
-    <!-- Form per inserire un nuovo messaggio -->
-    <div id="input-form">
-        <input type="text" id="new-message" placeholder="Scrivi un messaggio" />
-        <button onclick="addMessage()">Aggiungi</button>
+  <div class="container">
+    <h1>Lavagna - Pensieri degli utenti</h1>
+    <div id="messages">
+      <p>Caricamento in corso...</p>
     </div>
+    <h2>Aggiungi il tuo pensiero</h2>
+    <p>
+      Per aggiungere un pensiero, apri una pull request su 
+      <a href="https://github.com/Quasiamici/lavagna" target="_blank">GitHub</a> modificando il file `pensieri.json`.
+    </p>
+  </div>
 
-    <ul id="message-list"></ul>
+  <script>
+    const repoOwner = "Quasiamici";
+    const repoName = "lavagna";
+    const filePath = "pensieri.json";
 
-    <script>
-        // Funzione per caricare i messaggi esistenti
-        function loadMessages() {
-            fetch('https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json')
-                .then(response => response.json())
-                .then(data => {
-                    let messageList = document.getElementById('message-list');
-                    messageList.innerHTML = ''; // Pulisce la lista esistente
+    async function fetchMessages() {
+      const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Errore durante il caricamento dei pensieri.");
+        
+        const data = await response.json();
+        const content = atob(data.content); // Decodifica base64
+        const messages = JSON.parse(content);
 
-                    // Aggiungi ogni messaggio
-                    data.forEach(message => {
-                        let messageItem = document.createElement('li');
-                        messageItem.textContent = message.message;
-                        messageList.appendChild(messageItem);
-                    });
-                })
-                .catch(error => {
-                    console.error('Errore nel caricamento dei messaggi:', error);
-                });
-        }
+        displayMessages(messages);
+      } catch (error) {
+        document.getElementById("messages").innerHTML = `<p>Errore: ${error.message}</p>`;
+      }
+    }
 
-        // Funzione per aggiungere un nuovo messaggio
-        function addMessage() {
-            const newMessage = document.getElementById('new-message').value;
-            if (newMessage.trim() === '') {
-                alert('Il messaggio non può essere vuoto!');
-                return;
-            }
+    function displayMessages(messages) {
+      const messagesContainer = document.getElementById("messages");
+      messagesContainer.innerHTML = "";
 
-            const newEntry = {
-                message: newMessage,
-                date: new Date().toISOString()
-            };
+      messages.forEach(msg => {
+        const div = document.createElement("div");
+        div.className = "message";
+        div.textContent = msg;
+        messagesContainer.appendChild(div);
+      });
+    }
 
-            // Aggiungi il messaggio al file JSON nel repository
-            updateMessages(newEntry);
-            document.getElementById('new-message').value = ''; // Resetta il campo di input
-            loadMessages();  // Ricarica i messaggi
-        }
-
-        // Funzione per aggiornare il file messages.json tramite un trigger GitHub Action
-        function updateMessages(newEntry) {
-            fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json', {
-                method: 'GET', // Ottieni il file esistente
-                headers: {
-                    'Authorization': 'Bearer ' + 'TOKEN_GITHUB',  // Usa il tuo token GitHub segreto
-                    'Content-Type': 'application/json'
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                let messages = JSON.parse(atob(data.content));  // Decodifica il contenuto in base64
-
-                // Aggiungi il nuovo messaggio, senza duplicati
-                const existingMessages = messages.map(item => item.message);
-                if (!existingMessages.includes(newEntry.message)) {
-                    messages.push(newEntry);
-                }
-
-                // Invio dell'aggiornamento al file messages.json
-                const updatedContent = btoa(JSON.stringify(messages)); // Codifica il JSON in base64
-
-                return fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json', {
-                    method: 'PUT',  // Aggiorna il file
-                    headers: {
-                        'Authorization': 'Bearer ' + 'TOKEN_GITHUB',  // Usa il token GitHub
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        message: 'Aggiunto un nuovo messaggio',
-                        committer: {
-                            name: 'GitHub Actions Bot',
-                            email: 'actions@github.com'
-                        },
-                        content: updatedContent
-                    })
-                });
-            })
-            .then(response => response.json())
-            .then(data => console.log(data))
-            .catch(error => console.error('Errore nell\'aggiornamento del file:', error));
-        }
-
-        // Carica i messaggi all'inizio
-        window.onload = loadMessages;
-    </script>
+    // Carica i messaggi all'avvio
+    fetchMessages();
+  </script>
 </body>
 </html>
