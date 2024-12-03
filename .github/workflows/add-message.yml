@@ -6,7 +6,7 @@ on:
       - main  # O il ramo che usi
 
 jobs:
-  update-messages:
+  update-messages: 
     runs-on: ubuntu-latest
 
     steps:
