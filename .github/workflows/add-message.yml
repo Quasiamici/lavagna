@@ -30,4 +30,4 @@ jobs:
         run: |
           git add messages.json
           git commit -m "Aggiunto un nuovo messaggio"
-          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/Quasiamici/lavagna.git
+          git push https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/Quasiamici/lavagna.git
