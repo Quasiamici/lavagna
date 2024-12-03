@@ -10,7 +10,7 @@ on:
 
 jobs:
   update-messages:
-    runs-on: ubuntu-latest
+    runs-on: runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
@@ -22,7 +22,7 @@ jobs:
           curl -H "Authorization: Bearer ${{ secrets.TOKEN_GITHUB }}" \
                -H "Accept: application/vnd.github.v3.raw" \
                -o messages.json \
-               https://api.github.com/repos/tuo-username/lavagna-messaggi/contents/messages.json
+               https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json
 
       - name: Aggiungi nuovo messaggio
         run: |
