@@ -1,0 +1,33 @@
+name: Aggiorna Messaggi
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  repository_dispatch:
+    types: [add-message]
+
+jobs:
+  update-messages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Scarica messaggi
+        run: |
+          echo "Scarico i messaggi correnti..."
+          curl -H "Authorization: Bearer ${{ secrets.TOKEN_GITHUB }}" \
+               -H "Accept: application/vnd.github.v3.raw" \
+               -o messages.json \
+               https://api.github.com/repos/tuo-username/lavagna-messaggi/contents/messages.json
+
+      - name: Aggiungi nuovo messaggio
+        run: |
+          echo "Aggiungo un nuovo messaggio..."
+          echo '${{ github.event.client_payload.message }}' >> messages.json
+          git add messages.json
+          git commit -m "Aggiorna messaggi"
+          git push
