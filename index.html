@@ -66,22 +66,44 @@
         // Funzione per aggiornare il file messages.json tramite un trigger GitHub Action
         function updateMessages(newEntry) {
             fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json', {
-                method: 'PUT',
+                method: 'GET', // Ottieni il file esistente
                 headers: {
                     'Authorization': 'Bearer ' + 'TOKEN_GITHUB',  // Usa il tuo token GitHub segreto
                     'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: 'Aggiunto un nuovo messaggio',
-                    committer: {
-                        name: 'GitHub Actions Bot',
-                        email: 'actions@github.com'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                let messages = JSON.parse(atob(data.content));  // Decodifica il contenuto in base64
+
+                // Aggiungi il nuovo messaggio, senza duplicati
+                const existingMessages = messages.map(item => item.message);
+                if (!existingMessages.includes(newEntry.message)) {
+                    messages.push(newEntry);
+                }
+
+                // Invio dell'aggiornamento al file messages.json
+                const updatedContent = btoa(JSON.stringify(messages)); // Codifica il JSON in base64
+
+                return fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json', {
+                    method: 'PUT',  // Aggiorna il file
+                    headers: {
+                        'Authorization': 'Bearer ' + 'TOKEN_GITHUB',  // Usa il token GitHub
+                        'Content-Type': 'application/json'
                     },
-                    content: btoa(JSON.stringify([newEntry])) // Converti il messaggio in base64
-                })
-            }).then(response => response.json())
-              .then(data => console.log(data))
-              .catch(error => console.error('Errore nell\'aggiornamento del file:', error));
+                    body: JSON.stringify({
+                        message: 'Aggiunto un nuovo messaggio',
+                        committer: {
+                            name: 'GitHub Actions Bot',
+                            email: 'actions@github.com'
+                        },
+                        content: updatedContent
+                    })
+                });
+            })
+            .then(response => response.json())
+            .then(data => console.log(data))
+            .catch(error => console.error('Errore nell\'aggiornamento del file:', error));
         }
 
         // Carica i messaggi all'inizio
