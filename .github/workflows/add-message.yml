@@ -1,12 +1,9 @@
 name: Aggiorna Messaggi
 
 on:
-  workflow_dispatch:  # Trigger manuale da GitHub UI
-    inputs:
-      message:
-        description: 'Nuovo messaggio'
-        required: true
-        type: string
+  push:
+    paths:
+      - 'messages.json'
 
 jobs:
   update_messages:
@@ -15,12 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Impostare Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Aggiungere messaggio a messages.json
+      - name: Aggiornare messages.json
         run: |
           import json
           from datetime import datetime
@@ -29,15 +21,13 @@ jobs:
           with open('messages.json', 'r') as f:
               messages = json.load(f)
 
-          # Aggiungi il nuovo messaggio
-          new_message = "${{ github.event.inputs.message }}"
-          new_entry = {
-              "message": new_message,
+          # Aggiungi un nuovo messaggio (senza duplicati)
+          new_message = {
+              "message": "Nuovo messaggio!",
               "date": datetime.now().isoformat()
           }
-
-          # Aggiungi il messaggio
-          messages.append(new_entry)
+          if new_message not in messages:
+              messages.append(new_message)
 
           # Scrivi il file aggiornato
           with open('messages.json', 'w') as f:
