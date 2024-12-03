@@ -1,32 +1,32 @@
 name: Aggiorna Messaggi
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
   repository_dispatch:
     types: [add-message]
 
 jobs:
   update-messages:
-    runs-on: runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Configura Git
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.TOKEN_GITHUB }}@github.com/Quasiamici/lavagna.git
+
       - name: Scarica messaggi
         run: |
-          echo "Scarico i messaggi correnti..."
-          curl -H "Authorization: Bearer ${{ secrets.TOKEN_GITHUB }}" \
+          curl -H "Authorization: Bearer ${{ secrets.GH_TOKEN }}" \
                -H "Accept: application/vnd.github.v3.raw" \
                -o messages.json \
                https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json
 
       - name: Aggiungi nuovo messaggio
         run: |
-          echo "Aggiungo un nuovo messaggio..."
           echo '${{ github.event.client_payload.message }}' >> messages.json
           git add messages.json
           git commit -m "Aggiorna messaggi"
