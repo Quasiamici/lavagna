@@ -1,20 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lavagna</title>
-  <link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lavagna Messaggi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            padding: 10px;
+            height: 300px;
+            overflow-y: scroll;
+            margin-bottom: 10px;
+        }
+        textarea {
+            width: 100%;
+            height: 50px;
+            margin-bottom: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-  <div id="app">
-    <h1>Lavagna dei Messaggi</h1>
-    <div id="messages"></div>
-    <form id="messageForm">
-      <textarea id="messageInput" placeholder="Scrivi un messaggio..."></textarea>
-      <button type="submit">Invia</button>
-    </form>
-  </div>
-  <script src="app.js"></script>
+    <h1>Lavagna Messaggi</h1>
+    <div id="messages">Caricamento messaggi...</div>
+    <textarea id="newMessage" placeholder="Scrivi il tuo messaggio qui"></textarea>
+    <button onclick="postMessage()">Invia Messaggio</button>
+
+    <script>
+        const apiUrl = "https://api.github.com/repos/tuo-username/lavagna-messaggi/contents/messages.json";
+
+        // Funzione per caricare i messaggi
+        async function loadMessages() {
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                const messages = JSON.parse(atob(data.content));
+                document.getElementById("messages").innerHTML = messages
+                    .map(msg => `<p>${msg}</p>`)
+                    .join("");
+            } catch (error) {
+                console.error("Errore nel caricamento:", error);
+                document.getElementById("messages").innerHTML = "Impossibile caricare i messaggi.";
+            }
+        }
+
+        // Funzione per inviare un nuovo messaggio
+        async function postMessage() {
+            const newMessage = document.getElementById("newMessage").value;
+            if (!newMessage.trim()) return alert("Il messaggio non può essere vuoto!");
+
+            try {
+                const response = await fetch("/add-message", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ message: newMessage }),
+                });
+
+                if (response.ok) {
+                    document.getElementById("newMessage").value = "";
+                    loadMessages(); // Ricarica i messaggi
+                } else {
+                    alert("Errore durante l'invio del messaggio.");
+                }
+            } catch (error) {
+                console.error("Errore durante l'invio:", error);
+            }
+        }
+
+        loadMessages(); // Carica i messaggi all'avvio
+    </script>
 </body>
 </html>
