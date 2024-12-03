@@ -26,22 +26,18 @@
     <script>
         // Funzione per caricare i messaggi esistenti
         function loadMessages() {
-            fetch('https://quasiamici.github.io/lavagna/messages.json')
+            fetch('https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json')
                 .then(response => response.json())
                 .then(data => {
                     let messageList = document.getElementById('message-list');
                     messageList.innerHTML = ''; // Pulisce la lista esistente
 
-                    // Assicurati che data sia un array
-                    if (Array.isArray(data)) {
-                        data.forEach(message => {
-                            let messageItem = document.createElement('li');
-                            messageItem.textContent = message.message;
-                            messageList.appendChild(messageItem);
-                        });
-                    } else {
-                        console.error("Formato dei messaggi non valido:", data);
-                    }
+                    // Aggiungi ogni messaggio
+                    data.forEach(message => {
+                        let messageItem = document.createElement('li');
+                        messageItem.textContent = message.message;
+                        messageList.appendChild(messageItem);
+                    });
                 })
                 .catch(error => {
                     console.error('Errore nel caricamento dei messaggi:', error);
@@ -51,22 +47,44 @@
         // Funzione per aggiungere un nuovo messaggio
         function addMessage() {
             const newMessage = document.getElementById('new-message').value;
-
             if (newMessage.trim() === '') {
                 alert('Il messaggio non può essere vuoto!');
                 return;
             }
 
-            // Resetta il campo di input
-            document.getElementById('new-message').value = '';
+            const newEntry = {
+                message: newMessage,
+                date: new Date().toISOString()
+            };
 
-            // Invia il messaggio tramite una GitHub Action che aggiorna il file
-            console.log('Aggiungendo messaggio:', newMessage);
-            // GitHub Action (o flusso di lavoro) si occuperà di aggiungere il messaggio nel repository
+            // Aggiungi il messaggio al file JSON nel repository
+            updateMessages(newEntry);
+            document.getElementById('new-message').value = ''; // Resetta il campo di input
             loadMessages();  // Ricarica i messaggi
         }
 
-        // Carica i messaggi quando la pagina viene caricata
+        // Funzione per aggiornare il file messages.json tramite un trigger GitHub Action
+        function updateMessages(newEntry) {
+            fetch('https://api.github.com/repos/Quasiamici/lavagna/contents/messages.json', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + 'TOKEN_GITHUB',  // Usa il tuo token GitHub segreto
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    message: 'Aggiunto un nuovo messaggio',
+                    committer: {
+                        name: 'GitHub Actions Bot',
+                        email: 'actions@github.com'
+                    },
+                    content: btoa(JSON.stringify([newEntry])) // Converti il messaggio in base64
+                })
+            }).then(response => response.json())
+              .then(data => console.log(data))
+              .catch(error => console.error('Errore nell\'aggiornamento del file:', error));
+        }
+
+        // Carica i messaggi all'inizio
         window.onload = loadMessages;
     </script>
 </body>
