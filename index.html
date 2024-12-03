@@ -8,78 +8,25 @@
 <body>
     <h1>Lavagna</h1>
     <div id="messages"></div>
-    <form id="message-form">
-        <input type="text" id="message-input" placeholder="Scrivi un messaggio" required />
-        <button type="submit">Invia</button>
-    </form>
-
+    
     <script>
         const REPO_OWNER = "Quasiamici";
         const REPO_NAME = "lavagna";
 
-        // Carica i messaggi dalla lavagna
+        // Funzione per caricare i messaggi
         async function loadMessages() {
             try {
-                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/messages.json`);
-
-                if (!response.ok) {
-                    throw new Error(`Errore ${response.status}: Impossibile caricare i messaggi.`);
-                }
-
+                const response = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/messages.json`);
                 const data = await response.json();
-                const content = atob(data.content); // Decodifica il contenuto Base64
-                const messages = JSON.parse(content);
-
-                // Mostra i messaggi nella pagina
                 const messagesElement = document.getElementById("messages");
-                messagesElement.innerHTML = messages
-                    .map(msg => `<p>${msg}</p>`)
-                    .join("");
+                messagesElement.innerHTML = data.map(msg => `<p>${msg}</p>`).join("");
             } catch (error) {
                 console.error("Errore nel caricamento dei messaggi:", error);
                 document.getElementById("messages").innerHTML = "Impossibile caricare i messaggi.";
             }
         }
 
-        // Invia un nuovo messaggio alla lavagna
-        async function addMessage(event) {
-            event.preventDefault();
-
-            const messageInput = document.getElementById("message-input");
-            const message = messageInput.value.trim();
-
-            if (!message) return;
-
-            try {
-                const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/dispatches`, {
-                    method: "POST",
-                    headers: {
-                        "Accept": "application/vnd.github.v3+json",
-                        "Authorization": `Bearer GITHUB_PAT_SECRET` // Non necessario se non è richiesto nel frontend
-                    },
-                    body: JSON.stringify({
-                        event_type: "add-message",
-                        client_payload: { message }
-                    })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Errore ${response.status}: Impossibile inviare il messaggio.`);
-                }
-
-                alert("Messaggio inviato con successo!");
-                messageInput.value = "";
-                loadMessages();
-            } catch (error) {
-                console.error("Errore durante l'invio del messaggio:", error);
-                alert("Errore durante l'invio del messaggio.");
-            }
-        }
-
-        document.getElementById("message-form").addEventListener("submit", addMessage);
-
-        // Carica i messaggi all'avvio
-        loadMessages();
+        loadMessages();  // Carica i messaggi all'avvio
     </script>
 </body>
 </html>
