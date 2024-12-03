@@ -32,11 +32,16 @@
                     let messageList = document.getElementById('message-list');
                     messageList.innerHTML = ''; // Pulisce la lista esistente
 
-                    data.forEach(message => {
-                        let messageItem = document.createElement('li');
-                        messageItem.textContent = message.message;
-                        messageList.appendChild(messageItem);
-                    });
+                    // Assicurati che data sia un array
+                    if (Array.isArray(data)) {
+                        data.forEach(message => {
+                            let messageItem = document.createElement('li');
+                            messageItem.textContent = message.message;
+                            messageList.appendChild(messageItem);
+                        });
+                    } else {
+                        console.error("Formato dei messaggi non valido:", data);
+                    }
                 })
                 .catch(error => {
                     console.error('Errore nel caricamento dei messaggi:', error);
@@ -52,22 +57,13 @@
                 return;
             }
 
-            // Aggiungi il nuovo messaggio al file JSON nel repository
-            const currentDate = new Date();
-            const newEntry = {
-                message: newMessage,
-                date: currentDate.toISOString()
-            };
-
-            // Simuliamo il push del messaggio su GitHub
-            // In un ambiente reale, il file JSON verrebbe aggiornato direttamente nel repo tramite GitHub Actions
-            console.log('Messaggio da aggiungere:', newEntry);
-
-            // Resetta l'input
+            // Resetta il campo di input
             document.getElementById('new-message').value = '';
 
-            // Ricarica i messaggi
-            loadMessages();
+            // Invia il messaggio tramite una GitHub Action che aggiorna il file
+            console.log('Aggiungendo messaggio:', newMessage);
+            // GitHub Action (o flusso di lavoro) si occuperà di aggiungere il messaggio nel repository
+            loadMessages();  // Ricarica i messaggi
         }
 
         // Carica i messaggi quando la pagina viene caricata
