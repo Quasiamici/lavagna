@@ -31,8 +31,16 @@ jobs:
       # Aggiungi un nuovo messaggio usando jq per formattare correttamente il JSON
       - name: Aggiungi un nuovo messaggio
         run: |
+          # Se il file è vuoto, creiamo un array vuoto prima di aggiungere il messaggio
+          if [ ! -s messages.json ]; then
+            echo "[]" > messages.json
+          fi
+          
+          # Aggiungi il nuovo messaggio all'array
           jq '. += [{"message": "Nuovo messaggio!"}]' messages.json > temp.json && mv temp.json messages.json
-          cat messages.json  # Visualizza il contenuto dopo la modifica
+          
+          # Visualizza il contenuto del file dopo la modifica
+          cat messages.json
 
       # Commit e push delle modifiche
       - name: Commit e push delle modifiche
