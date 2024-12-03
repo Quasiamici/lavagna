@@ -6,7 +6,7 @@ on:
       - main  # O il ramo che usi
 
 jobs:
-  update-messages: 
+  update-messages:
     runs-on: ubuntu-latest
 
     steps:
@@ -22,14 +22,17 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "action@github.com"
 
-      # Aggiungi un nuovo messaggio
-      - name: Ottieni il contenuto attuale del file messages.json
+      # Ottieni il contenuto corrente di messages.json
+      - name: Visualizza messaggi correnti
         run: |
           curl -o messages.json https://raw.githubusercontent.com/Quasiamici/lavagna/main/messages.json
+          cat messages.json  # Visualizza il contenuto corrente
 
+      # Aggiungi un nuovo messaggio usando jq per formattare correttamente il JSON
       - name: Aggiungi un nuovo messaggio
         run: |
-          echo '{"message": "Nuovo messaggio!"}' >> messages.json
+          jq '. += [{"message": "Nuovo messaggio!"}]' messages.json > temp.json && mv temp.json messages.json
+          cat messages.json  # Visualizza il contenuto dopo la modifica
 
       # Commit e push delle modifiche
       - name: Commit e push delle modifiche
