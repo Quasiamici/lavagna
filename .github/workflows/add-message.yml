@@ -1,9 +1,12 @@
-name: Update Messages JSON
+name: Aggiorna Messaggi
 
 on:
-  push:
-    paths:
-      - 'messages.json'
+  workflow_dispatch:  # Trigger manuale da GitHub UI
+    inputs:
+      message:
+        description: 'Nuovo messaggio'
+        required: true
+        type: string
 
 jobs:
   update_messages:
@@ -12,37 +15,40 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: Impostare Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
 
-      - name: Update messages.json
+      - name: Aggiungere messaggio a messages.json
         run: |
           import json
           from datetime import datetime
 
-          # Carica il file JSON
+          # Carica il file messages.json
           with open('messages.json', 'r') as f:
               messages = json.load(f)
 
           # Aggiungi il nuovo messaggio
-          new_message = {
-              "message": "Nuovo messaggio aggiunto!",
+          new_message = "${{ github.event.inputs.message }}"
+          new_entry = {
+              "message": new_message,
               "date": datetime.now().isoformat()
           }
-          messages.append(new_message)
+
+          # Aggiungi il messaggio
+          messages.append(new_entry)
 
           # Scrivi il file aggiornato
           with open('messages.json', 'w') as f:
               json.dump(messages, f, indent=2)
 
-      - name: Commit updated messages
+      - name: Commit aggiornamenti
         run: |
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git add messages.json
-          git commit -m "Aggiunto un nuovo messaggio"
+          git commit -m "Aggiunto nuovo messaggio"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
