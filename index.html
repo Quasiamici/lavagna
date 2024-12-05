@@ -1,80 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lavagna - Quasiamici</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 20px;
-      background-color: #f4f4f9;
-    }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: #fff;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .message {
-      border-bottom: 1px solid #ddd;
-      padding: 10px 0;
-    }
-    .message:last-child {
-      border-bottom: none;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lavagna</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
+        #phraseBoard { margin-top: 20px; border: 1px solid #ccc; padding: 10px; max-width: 600px; margin: 0 auto; }
+        .phrase { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
+        input, button { margin: 10px; padding: 10px; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Lavagna - Pensieri degli utenti</h1>
-    <div id="messages">
-      <p>Caricamento in corso...</p>
-    </div>
-    <h2>Aggiungi il tuo pensiero</h2>
-    <p>
-      Per aggiungere un pensiero, apri una pull request su 
-      <a href="https://github.com/Quasiamici/lavagna" target="_blank">GitHub</a> modificando il file `pensieri.json`.
-    </p>
-  </div>
+    <h1>Welcome to Lavagna</h1>
+    <input id="phraseInput" type="text" placeholder="Write your phrase here..." />
+    <button onclick="submitPhrase()">Share</button>
+    <div id="phraseBoard"></div>
 
-  <script>
-    const repoOwner = "Quasiamici";
-    const repoName = "lavagna";
-    const filePath = "pensieri.json";
+    <script>
+        const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL
 
-    async function fetchMessages() {
-      const url = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
-      try {
-        const response = await fetch(url);
-        if (!response.ok) throw new Error("Errore durante il caricamento dei pensieri.");
-        
-        const data = await response.json();
-        const content = atob(data.content); // Decodifica base64
-        const messages = JSON.parse(content);
+        async function loadPhrases() {
+            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2' } }); // Add your API key here
+            const data = await response.json();
+            const phrases = data.record.phrases || [];
+            const board = document.getElementById('phraseBoard');
+            board.innerHTML = phrases.map(p => `<div class="phrase">${p}</div>`).join('');
+        }
 
-        displayMessages(messages);
-      } catch (error) {
-        document.getElementById("messages").innerHTML = `<p>Errore: ${error.message}</p>`;
-      }
-    }
+        async function submitPhrase() {
+            const input = document.getElementById('phraseInput');
+            const phrase = input.value.trim();
+            if (!phrase) return;
 
-    function displayMessages(messages) {
-      const messagesContainer = document.getElementById("messages");
-      messagesContainer.innerHTML = "";
+            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2' } });
+            const data = await response.json();
+            const phrases = data.record.phrases || [];
+            phrases.push(phrase);
 
-      messages.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "message";
-        div.textContent = msg;
-        messagesContainer.appendChild(div);
-      });
-    }
+            await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2'
+                },
+                body: JSON.stringify({ phrases })
+            });
 
-    // Carica i messaggi all'avvio
-    fetchMessages();
-  </script>
+            input.value = '';
+            loadPhrases();
+        }
+
+        loadPhrases();
+    </script>
 </body>
 </html>
