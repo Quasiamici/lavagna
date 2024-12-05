@@ -5,53 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lavagna</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; }
-        #phraseBoard { margin-top: 20px; border: 1px solid #ccc; padding: 10px; max-width: 600px; margin: 0 auto; }
-        .phrase { margin: 10px 0; padding: 10px; border-bottom: 1px solid #ddd; }
-        input, button { margin: 10px; padding: 10px; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        #phraseBoard {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .phrase {
+            margin: 10px 0;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        input, button {
+            margin: 10px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Welcome to Lavagna</h1>
     <input id="phraseInput" type="text" placeholder="Write your phrase here..." />
-    <button onclick="submitPhrase()">Share</button>
-    <div id="phraseBoard"></div>
+    <button onclick="addPhrase()">Share</button>
+    <div id="phraseBoard">Loading phrases...</div>
 
     <script>
-        //const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL
-        const apiUrl = 'https://cors-anywhere.herokuapp.com/https://api.jsonbin.io/v3/b/6751a00de41b4d34e4604ee0';
+        const phrasesUrl = './phrases.json';
 
+        // Load phrases from the JSON file
         async function loadPhrases() {
-            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$NefWB5.pKV2NrZ5j6Fn03Ol20IKsZql0t3gM6waqSTdav6XE22A3G' } }); // Add your API key here
-            const data = await response.json();
-            const phrases = data.record.phrases || [];
-            const board = document.getElementById('phraseBoard');
-            board.innerHTML = phrases.map(p => `<div class="phrase">${p}</div>`).join('');
+            try {
+                const response = await fetch(phrasesUrl);
+                if (!response.ok) throw new Error('Failed to load phrases');
+                const phrases = await response.json();
+                const board = document.getElementById('phraseBoard');
+                board.innerHTML = phrases.map(p => `<div class="phrase">${p}</div>`).join('');
+            } catch (error) {
+                console.error('Error loading phrases:', error);
+                document.getElementById('phraseBoard').innerHTML = 'Failed to load phrases.';
+            }
         }
 
-        async function submitPhrase() {
+        // Add a new phrase (local-only; needs manual update for phrases.json)
+        function addPhrase() {
             const input = document.getElementById('phraseInput');
             const phrase = input.value.trim();
             if (!phrase) return;
 
-            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$NefWB5.pKV2NrZ5j6Fn03Ol20IKsZql0t3gM6waqSTdav6XE22A3G' } });
-            const data = await response.json();
-            const phrases = data.record.phrases || [];
-            phrases.push(phrase);
-
-            await fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$NefWB5.pKV2NrZ5j6Fn03Ol20IKsZql0t3gM6waqSTdav6XE22A3G'
-                },
-                body: JSON.stringify({ phrases })
-            });
-
+            const board = document.getElementById('phraseBoard');
+            board.innerHTML += `<div class="phrase">${phrase}</div>`;
             input.value = '';
-            loadPhrases();
+
+            alert("Note: This is a static demo. To make this permanent, update phrases.json manually.");
         }
 
+        // Load phrases on page load
         loadPhrases();
     </script>
 </body>
