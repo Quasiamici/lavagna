@@ -18,10 +18,10 @@
     <div id="phraseBoard"></div>
 
     <script>
-        //const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL 6751a00de41b4d34e4604ee0
-        const apiUrl = 'https://cors-anywhere.herokuapp.com/https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Aggiungi il proxy
+        const apiUrl = 'https://cors-anywhere.herokuapp.com/https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Aggiungi il proxy cors-anywhere
         const masterKey = '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2'; // La tua chiave API
 
+        // Funzione per caricare le frasi dal bin
         async function loadPhrases() {
             try {
                 const response = await fetch(apiUrl, {
@@ -32,33 +32,41 @@
                 const board = document.getElementById('phraseBoard');
                 board.innerHTML = phrases.map(p => `<div class="phrase">${p}</div>`).join('');
             } catch (error) {
-                console.error('Error loading phrases:', error);
+                console.error('Errore nel caricamento delle frasi:', error);
             }
         }
 
+        // Funzione per inviare una nuova frase
         async function submitPhrase() {
             const input = document.getElementById('phraseInput');
             const phrase = input.value.trim();
             if (!phrase) return;
 
-            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2' } });
-            const data = await response.json();
-            const phrases = data.record.phrases || [];
-            phrases.push(phrase);
+            try {
+                const response = await fetch(apiUrl, {
+                    headers: { 'X-Master-Key': masterKey }
+                });
+                const data = await response.json();
+                const phrases = data.record.phrases || [];
+                phrases.push(phrase);
 
-            await fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2'
-                },
-                body: JSON.stringify({ phrases })
-            });
+                await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': masterKey
+                    },
+                    body: JSON.stringify({ phrases })
+                });
 
-            input.value = '';
-            loadPhrases();
+                input.value = '';  // Pulisce il campo di input
+                loadPhrases();  // Ricarica le frasi
+            } catch (error) {
+                console.error('Errore nell\'invio della frase:', error);
+            }
         }
 
+        // Carica le frasi quando la pagina viene caricata
         loadPhrases();
     </script>
 </body>
