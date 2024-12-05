@@ -18,10 +18,10 @@
     <div id="phraseBoard"></div>
 
     <script>
-        const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL
+        const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL 6751a00de41b4d34e4604ee0
 
         async function loadPhrases() {
-            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2' } }); // Add your API key here
+            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$sMR6LIV2bzXEMcUaBkp1f.bMrJlDOmkSotIiRZiDjuBZWkRTjYvOy' } }); // Add your API key here
             const data = await response.json();
             const phrases = data.record.phrases || [];
             const board = document.getElementById('phraseBoard');
@@ -33,7 +33,7 @@
             const phrase = input.value.trim();
             if (!phrase) return;
 
-            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2' } });
+            const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$sMR6LIV2bzXEMcUaBkp1f.bMrJlDOmkSotIiRZiDjuBZWkRTjYvOy' } });
             const data = await response.json();
             const phrases = data.record.phrases || [];
             phrases.push(phrase);
@@ -42,7 +42,7 @@
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Master-Key': '$2a$10$uSzyAdV6lVJCbiPVX5jDRu4gMF2mljxbJHQyHqtCC7QQIy95JuTZ2'
+                    'X-Master-Key': '$2a$10$sMR6LIV2bzXEMcUaBkp1f.bMrJlDOmkSotIiRZiDjuBZWkRTjYvOy'
                 },
                 body: JSON.stringify({ phrases })
             });
