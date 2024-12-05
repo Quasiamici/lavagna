@@ -18,7 +18,8 @@
     <div id="phraseBoard"></div>
 
     <script>
-        const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL
+        //const apiUrl = 'https://jsonbin.io/v3/b/6751a00de41b4d34e4604ee0'; // Replace with your JSONBin URL
+        const apiUrl = 'https://cors-anywhere.herokuapp.com/https://api.jsonbin.io/v3/b/6751a00de41b4d34e4604ee0';
 
         async function loadPhrases() {
             const response = await fetch(apiUrl, { headers: { 'X-Master-Key': '$2a$10$NefWB5.pKV2NrZ5j6Fn03Ol20IKsZql0t3gM6waqSTdav6XE22A3G' } }); // Add your API key here
